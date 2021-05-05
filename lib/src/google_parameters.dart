@@ -38,7 +38,7 @@ class GoogleParameters {
       map.addAll({'gatewayMerchantId': gatewayMerchantId!});
     }
     if (gatewayArgs != null) {
-      map.addAll(gatewayArgs!);
+      map['gatewayArgs'] = gatewayArgs;
     }
     if (allowedCardAuthMethods.isNotEmpty) {
       map['allowedAuthMethods'] =

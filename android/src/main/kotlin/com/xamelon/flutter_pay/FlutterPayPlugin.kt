@@ -95,11 +95,15 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
                 .put("apiVersionMinor", 0)
     }
 
-    private fun getGatewayJsonTokenizationType(gatewayName: String, gatewayMerchantID: String?): JSONObject {
+    private fun getGatewayJsonTokenizationType(gatewayName: String, gatewayMerchantID: String?, gatewayArgs: Map<String, Any>?): JSONObject {
         return JSONObject().put("type", "PAYMENT_GATEWAY")
                 .put("parameters", JSONObject()
                         .put("gateway", gatewayName)
                         .apply {
+                            gatewayArgs?.forEach { entry ->
+                                put(entry.key, entry.value)
+                            }
+
                             if (gatewayMerchantID != null) {
                                 put("gatewayMerchantId", gatewayMerchantID)
                             }
@@ -147,9 +151,9 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
         return cardPaymentMethod
     }
 
-    private fun getCardPaymentMethod(gatewayName: String, gatewayMerchantID: String?, allowedPaymentNetworks: List<String>? = null, allowedAuthMethods: List<String>? = null): JSONObject {
+    private fun getCardPaymentMethod(gatewayName: String, gatewayMerchantID: String?, gatewayArgs: Map<String, Any>? = null, allowedPaymentNetworks: List<String>? = null, allowedAuthMethods: List<String>? = null): JSONObject {
         val cardPaymentMethod = getBaseCardPaymentMethod(allowedPaymentNetworks, allowedAuthMethods)
-        val tokenizationOptions = getGatewayJsonTokenizationType(gatewayName, gatewayMerchantID)
+        val tokenizationOptions = getGatewayJsonTokenizationType(gatewayName, gatewayMerchantID, gatewayArgs)
         cardPaymentMethod.put("tokenizationSpecification", tokenizationOptions)
         return cardPaymentMethod
     }
@@ -173,6 +177,7 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
         val gatewayMerchantID = args["gatewayMerchantId"] as? String
         val merchantId = args["merchantId"] as? String
         val merchantName = args["merchantName"] as? String
+        val gatewayArgs = args["gatewayArgs"] as? Map<String, Any>
 
         var totalPrice = 0.0
         items?.forEach {
@@ -214,7 +219,7 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
                 .putOpt("merchantInfo", merchantInfo)
                 .put("emailRequired", emailRequired)
                 .put("transactionInfo", getTransactionInfo(totalPrice, currencyCode, countryCode))
-                .put("allowedPaymentMethods", JSONArray().put(getCardPaymentMethod(gatewayName, gatewayMerchantID, paymentNetworks, authMethods)))
+                .put("allowedPaymentMethods", JSONArray().put(getCardPaymentMethod(gatewayName, gatewayMerchantID, gatewayArgs, paymentNetworks, authMethods)))
 
         val paymentDataRequest = PaymentDataRequest.fromJson(paymentRequestJson.toString(4))
 
