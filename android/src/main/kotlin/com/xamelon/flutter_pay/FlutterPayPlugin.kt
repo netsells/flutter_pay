@@ -95,11 +95,15 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
                 .put("apiVersionMinor", 0)
     }
 
-    private fun getGatewayJsonTokenizationType(gatewayName: String, gatewayMerchantID: String): JSONObject {
+    private fun getGatewayJsonTokenizationType(gatewayName: String, gatewayMerchantID: String?): JSONObject {
         return JSONObject().put("type", "PAYMENT_GATEWAY")
                 .put("parameters", JSONObject()
                         .put("gateway", gatewayName)
-                        .put("gatewayMerchantId", gatewayMerchantID))
+                        .apply {
+                            if (gatewayMerchantID != null) {
+                                put("gatewayMerchantId", gatewayMerchantID)
+                            }
+                        })
     }
 
     private fun getAllowedCardSystems(): JSONArray {
@@ -143,7 +147,7 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
         return cardPaymentMethod
     }
 
-    private fun getCardPaymentMethod(gatewayName: String, gatewayMerchantID: String, allowedPaymentNetworks: List<String>? = null, allowedAuthMethods: List<String>? = null): JSONObject {
+    private fun getCardPaymentMethod(gatewayName: String, gatewayMerchantID: String?, allowedPaymentNetworks: List<String>? = null, allowedAuthMethods: List<String>? = null): JSONObject {
         val cardPaymentMethod = getBaseCardPaymentMethod(allowedPaymentNetworks, allowedAuthMethods)
         val tokenizationOptions = getGatewayJsonTokenizationType(gatewayName, gatewayMerchantID)
         cardPaymentMethod.put("tokenizationSpecification", tokenizationOptions)
@@ -195,7 +199,7 @@ class FlutterPayPlugin : FlutterPlugin, MethodCallHandler, PluginRegistry.Activi
             this.lastResult?.error("zeroPrice", "Invalid price", "Total price cannot be zero or less than zero")
             return
         }
-        if (gatewayName == null || gatewayMerchantID == null || currencyCode == null || countryCode == null) {
+        if (gatewayName == null || currencyCode == null || countryCode == null) {
             this.lastResult?.error("invalidParameters", "Invalid parameters", "Invalid parameters")
             return
         }

@@ -40,6 +40,10 @@ class GoogleParameters {
     if (gatewayArgs != null) {
       map.addAll(gatewayArgs!);
     }
+    if (allowedCardAuthMethods.isNotEmpty) {
+      map['allowedAuthMethods'] =
+          allowedCardAuthMethods.map((e) => e.getName).toList();
+    }
 
     return map;
   }
